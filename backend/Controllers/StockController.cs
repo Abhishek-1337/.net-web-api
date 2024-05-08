@@ -12,7 +12,7 @@ namespace backend.Controllers
 {
     [Route("api/stock")]
     [ApiController]
-    public class StockController: ControllerBase
+    public class StockController : ControllerBase
     {
         private readonly ApplicationDBContext _context;
 
@@ -23,30 +23,58 @@ namespace backend.Controllers
 
 
         [HttpGet]
-        public IActionResult GetAll() {
+        public IActionResult GetAll()
+        {
             var stocks = _context.Stocks.ToList()
             .Select(s => s.toStockDto());
             return Ok(stocks);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById([FromRoute] int id){
+        public IActionResult GetById([FromRoute] int id)
+        {
             var stock = _context.Stocks.Find(id);
 
-            if(stock == null){
+            if (stock == null)
+            {
                 return NotFound();
             }
 
-            return Ok(stock);
-        } 
+            return Ok(stock.toStockDto());
+        }
 
         [HttpPost]
-        public IActionResult Create([FromBody] CreateStockRequestDto stock){
+        public IActionResult Create([FromBody] CreateStockRequestDto stock)
+        {
             var stockModel = stock.toStockFromDto();
             _context.Stocks.Add(stockModel);
             _context.SaveChanges();
 
-            return CreatedAtAction(nameof(GetById), new { id = stockModel.Id}, stockModel.toStockDto());
-        } 
+            return CreatedAtAction(nameof(GetById), new { id = stockModel.Id }, stockModel.toStockDto());
+        }
+
+        [HttpPut]
+        [Route("{id}")]
+        public IActionResult Update([FromRoute] int id, [FromBody] UpdateStockRequestDto stock)
+        {
+            var stockModel = _context.Stocks.FirstOrDefault(s => s.Id == id);
+
+            if (stockModel == null)
+            {
+                return NotFound();
+            }
+
+            stockModel.CompanyName = stock.CompanyName;
+            stockModel.Industry = stock.Industry;
+            stockModel.LastDiv = stock.LastDiv;
+            stockModel.MarketCap = stock.MarketCap;
+            stockModel.Purchase = stock.Purchase;
+            stockModel.Symbol = stock.Symbol;
+
+
+            _context.SaveChanges();
+
+            return Ok(stockModel.toStockDto());
+        }
     }
 }
