@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using backend.Data;
 using backend.Mappers;
+using backend.DTOs.Stock;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {
@@ -36,6 +38,15 @@ namespace backend.Controllers
             }
 
             return Ok(stock);
-        }  
+        } 
+
+        [HttpPost]
+        public IActionResult Create([FromBody] CreateStockRequestDto stock){
+            var stockModel = stock.toStockFromDto();
+            _context.Stocks.Add(stockModel);
+            _context.SaveChanges();
+
+            return CreatedAtAction(nameof(GetById), new { id = stockModel.Id}, stockModel.toStockDto());
+        } 
     }
 }
